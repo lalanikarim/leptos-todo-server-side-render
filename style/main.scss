@@ -1,40 +1,27 @@
+@import url("https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic");
+@import url("https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" );
+@import url("https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css" );
+//@import url("https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css");
+//@import url("https://unpkg.com/mvp.css@1.12/mvp.css");
+
 body {
 	font-family: sans-serif;
 	text-align: center;
 }
 
-.new-todo {
-	width:400px;
-	margin: 0 auto 0 auto;
-	display: flex;
-	flex-direction: row;
-	justify-content: space-between;
-}
+.add-new-todo {
+	.label {
+		font-size: large;
+	}
+	.content {
+		display: flex;
+		justify-content: space-between;
 
-.new-todo .title {
-}
-
-.new-todo .input {
-	width: 200px;
-}
-
-.new-todo .action {
-	width: 50px;
-}
-
-.todo-list {
-	width: 600px;
-	margin: 0 auto 0 auto;
-	display: flex;
-	flex-direction: column;
-}
-
-.todo-item {
-	display:flex;
-	flex-direction: row;
-	justify-content: space-between;
-}
-
-.todo-item .done {
-	text-decoration: line-through;
+		form {
+			display: flex;
+		}
+		.show-done {
+			display: flex;
+		}
+	}
 }
