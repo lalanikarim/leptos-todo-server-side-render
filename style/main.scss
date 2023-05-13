@@ -1,0 +1,40 @@
+body {
+	font-family: sans-serif;
+	text-align: center;
+}
+
+.new-todo {
+	width:400px;
+	margin: 0 auto 0 auto;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.new-todo .title {
+}
+
+.new-todo .input {
+	width: 200px;
+}
+
+.new-todo .action {
+	width: 50px;
+}
+
+.todo-list {
+	width: 600px;
+	margin: 0 auto 0 auto;
+	display: flex;
+	flex-direction: column;
+}
+
+.todo-item {
+	display:flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.todo-item .done {
+	text-decoration: line-through;
+}
