@@ -1,28 +1,72 @@
 use leptos::*;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+use surrealdb::engine::remote::ws::Client;
+use surrealdb::sql::Thing as SurrealThing;
+use surrealdb::Surreal;
+
+use super::thing::Thing;
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Todo {
-    pub id: Option<Uuid>,
+    pub id: Option<Thing>,
     pub task: String,
     pub done: bool,
 }
 
+#[cfg(feature = "ssr")]
+impl Todo {
+    pub fn register() {
+        _ = GetTodos::register();
+        _ = AddTodo::register();
+        _ = UpdateTodo::register();
+    }
+    pub fn change_done(self, done: bool) -> Self {
+        let Todo { id, task, .. } = self;
+        Self { id, task, done }
+    }
+}
+
 #[server(GetTodos, "/api")]
 pub async fn get_todos(cx: Scope) -> Result<Vec<Todo>, ServerFnError> {
-    //use surrealdb::engine::remote::ws::Client;
-    //let db = use_context::<surrealdb::Surreal<Client>>(cx).expect("db client should be present");
+    if let Some(db) = use_context::<Surreal<Client>>(cx) {
+        let todos: Vec<Todo> = db.select("todos").await.unwrap();
+        Ok(todos)
+    } else {
+        Ok(vec![])
+    }
+}
 
-    //let result = db.query("select * from time::now()").await.unwrap();
-    //log!("db result: {:?}", result);
+#[server(AddTodo, "/api")]
+pub async fn add_todo(cx: Scope, task: String) -> Result<Option<Todo>, ServerFnError> {
+    if let Some(db) = use_context::<Surreal<Client>>(cx) {
+        let todo: Todo = db
+            .create("todos")
+            .content(Todo {
+                id: None,
+                task,
+                done: false,
+            })
+            .await
+            .unwrap();
+        println!("Todo: {:?}", todo);
+        Ok(Some(todo))
+    } else {
+        Ok(None)
+    }
+}
 
-    let todos = (1..=10)
-        .map(|_| Todo {
-            id: Some(Uuid::new_v4()),
-            task: Uuid::new_v4().urn().to_string(),
-            done: false,
-        })
-        .collect::<Vec<Todo>>();
-    Ok(todos)
+#[server(UpdateTodo, "/api")]
+pub async fn update_todo(cx: Scope, todo: Todo, done: bool) -> Result<Option<Todo>, ServerFnError> {
+    if let Some(db) = use_context::<Surreal<Client>>(cx) {
+        let id: SurrealThing = todo.clone().id.unwrap().into();
+        let todo: Todo = db
+            .update(("todos", id))
+            .content(todo.change_done(done))
+            .await
+            .unwrap();
+        Ok(Some(todo))
+    } else {
+        Ok(None)
+    }
 }

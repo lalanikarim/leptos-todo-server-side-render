@@ -1,9 +1,12 @@
 use leptos::*;
 
-use crate::models::todo::Todo;
+use crate::models::todo::{Todo, UpdateTodo};
 
 #[component]
 pub fn TodoItem(cx: Scope, todo: ReadSignal<Todo>, set_todo: WriteSignal<Todo>) -> impl IntoView {
+    let update_todo_action =
+        use_context::<Action<UpdateTodo, Result<Option<Todo>, ServerFnError>>>(cx)
+            .expect("update_todo_action should exist");
     let button_text = move || {
         if todo.get().done {
             "undo"
@@ -15,13 +18,8 @@ pub fn TodoItem(cx: Scope, todo: ReadSignal<Todo>, set_todo: WriteSignal<Todo>) 
     let task = move || todo.get().task;
     let on_click = move |_| {
         let todo = todo.get();
-        let Todo { id, task, done } = todo;
-        let new_todo = Todo {
-            id,
-            task,
-            done: !done,
-        };
-        set_todo.set(new_todo);
+        let done = todo.done;
+        update_todo_action.dispatch(UpdateTodo { todo, done: !done });
     };
     view! {
         cx,

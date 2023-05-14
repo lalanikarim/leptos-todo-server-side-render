@@ -2,10 +2,12 @@ use leptos::ev::SubmitEvent;
 use leptos::html::Input;
 use leptos::*;
 
+use crate::models::todo::{AddTodo, Todo};
+
 #[component]
 pub fn NewTodo(cx: Scope) -> impl IntoView {
-    //let set_todos =
-    //    use_context::<WriteSignal<Vec<TodoSignalPair>>>(cx).expect("set_todos should exist");
+    let add_todo_action = use_context::<Action<AddTodo, Result<Option<Todo>, ServerFnError>>>(cx)
+        .expect("add_todo_action should exist");
 
     let show_done = use_context::<ReadSignal<bool>>(cx).expect("show_done should exist");
     let set_show_done = use_context::<WriteSignal<bool>>(cx).expect("set_show_done should exist");
@@ -29,6 +31,9 @@ pub fn NewTodo(cx: Scope) -> impl IntoView {
         //    done: false,
         //};
 
+        add_todo_action.dispatch(AddTodo {
+            task: input_element.value(),
+        });
         //let (todo, set_todo) = create_signal(cx, todo);
         //set_todos.update(|items| items.push((todo, set_todo)));
         input_element.set_value("");

@@ -1,22 +1,22 @@
-use start_axum::models::todo::GetTodos;
+use start_axum::models::todo::Todo;
 use surrealdb::opt::auth::Root;
 
 #[cfg(feature = "ssr")]
-//#[tracing::instrument(level = "trace", fields(error), skip_all)]
+#[tracing::instrument(level = "trace", fields(error), skip_all)]
 pub async fn handle_server_fns_with_db(
     axum::extract::State(db): axum::extract::State<
         surrealdb::Surreal<surrealdb::engine::remote::ws::Client>,
     >,
-    fn_name: axum::extract::Path<String>,
+    path: axum::extract::Path<String>,
     headers: http::HeaderMap,
-    axum::extract::RawQuery(query): axum::extract::RawQuery,
+    raw_query: axum::extract::RawQuery,
     req: http::Request<axum::body::Body>,
 ) -> impl axum::response::IntoResponse {
     use leptos::provide_context;
-    println!("==========Handling Server Function==========");
     leptos_axum::handle_server_fns_with_context(
-        fn_name,
+        path,
         headers,
+        raw_query,
         move |cx| provide_context(cx, db.clone()),
         req,
     )
@@ -53,7 +53,9 @@ async fn main() {
         .use_db(dotenv!("SURREALDB_DATABASE"))
         .await
         .expect("change ns and db");
-    _ = GetTodos::register();
+
+    Todo::register();
+
     simple_logger::init_with_level(log::Level::Debug).expect("couldn't initialize logging");
 
     // Setting get_configuration(None) means we'll be using cargo-leptos's env values
@@ -68,8 +70,8 @@ async fn main() {
 
     // build our application with a route
     let app = Router::new()
-        .route("/api/*fn_name", post(leptos_axum::handle_server_fns))
-        //.route("/api/*fn_name", post(handle_server_fns_with_db))
+        //.route("/api/*fn_name", post(leptos_axum::handle_server_fns))
+        .route("/api/*fn_name", post(handle_server_fns_with_db))
         .with_state(db)
         .leptos_routes(leptos_options.clone(), routes, |cx| view! { cx, <App/> })
         .fallback(file_and_error_handler)
