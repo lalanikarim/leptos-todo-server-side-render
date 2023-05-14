@@ -1,43 +1,15 @@
 use crate::components::new_todo::*;
 use crate::components::todo_item::*;
-use leptos::*;
-use uuid::Uuid;
+use crate::models::todo::get_todos;
 
-use crate::models::todo::Todo;
+use leptos::*;
 
 #[component]
 pub fn HomePage(cx: Scope) -> impl IntoView {
-    // Creates a reactive value to update the button
-    let (todos, set_todos) = create_signal(cx, Vec::new());
     let (show_done, set_show_done) = create_signal(cx, true);
 
-    set_todos.set(
-        (1..=10)
-            .map(|_| Todo {
-                id: Some(Uuid::new_v4()),
-                task: Uuid::new_v4().urn().to_string(),
-                done: false,
-            })
-            .map(|t| {
-                let (todo, set_todo) = create_signal(cx, t);
-                (todo, set_todo)
-            })
-            .collect(),
-    );
+    let server_todos = create_resource(cx, || (), move |_| get_todos(cx));
 
-    let filtered_todos = move || {
-        if show_done.get() {
-            todos.get()
-        } else {
-            todos
-                .get()
-                .into_iter()
-                .filter(|t| !t.0.get().done)
-                .collect()
-        }
-    };
-
-    provide_context(cx, set_todos);
     provide_context(cx, show_done);
     provide_context(cx, set_show_done);
 
@@ -46,19 +18,47 @@ pub fn HomePage(cx: Scope) -> impl IntoView {
             <h1 class="header">"Todos"</h1>
             <NewTodo />
             <div>
-                <For
-                    each=filtered_todos
-                    key=|s:&(ReadSignal<Todo>,WriteSignal<Todo>)| {
-                        let(todo,_) = s;
-                        todo.get().id.unwrap()
-                    }
-                    view=move|cx,(todo,set_todo)| {
-                        view!{
-                            cx,
-                            <TodoItem todo set_todo />
+                <Suspense
+                    fallback=move || view! { cx, <div>"Loading ... "</div>}
+                >
+                {
+                    move || {
+                        server_todos.read(cx).map(|result| {
+
+                            let todos = result.unwrap();
+                            view! {
+                                cx,
+                                <ErrorBoundary
+                                    fallback=|cx, errors| view! {
+                                        cx,
+                                        <div>"Error"</div>
+                                        <ul>
+                                        {
+                                            move || errors.get()
+                                            .into_iter()
+                                            .map(|(_, e)| view! { cx, <li>{e.to_string()}</li>})
+                                            .collect::<Vec<_>>()
+                                        }
+                                        </ul>
+                                    }
+                                    >
+                                    <For
+                                        each=move || todos.clone()
+                                        key=move|todo| todo.id.unwrap()
+                                        view=move |cx,todo| {
+                                            let (todo,set_todo) = create_signal(cx,todo);
+                                            view! {
+                                                cx,
+                                                <TodoItem todo set_todo />
+                                            }
+                                        }
+                                    />
+                                </ErrorBoundary>
+                            }
                         }
-                    }
-                />
+                    )}
+                }
+                </Suspense>
             </div>
         </div>
     }

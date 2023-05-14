@@ -1,14 +1,11 @@
-use crate::models::todo::Todo;
-use crate::models::TodoSignalPair;
 use leptos::ev::SubmitEvent;
 use leptos::html::Input;
 use leptos::*;
-use uuid::Uuid;
 
 #[component]
 pub fn NewTodo(cx: Scope) -> impl IntoView {
-    let set_todos =
-        use_context::<WriteSignal<Vec<TodoSignalPair>>>(cx).expect("set_todos should exist");
+    //let set_todos =
+    //    use_context::<WriteSignal<Vec<TodoSignalPair>>>(cx).expect("set_todos should exist");
 
     let show_done = use_context::<ReadSignal<bool>>(cx).expect("show_done should exist");
     let set_show_done = use_context::<WriteSignal<bool>>(cx).expect("set_show_done should exist");
@@ -26,14 +23,14 @@ pub fn NewTodo(cx: Scope) -> impl IntoView {
         ev.prevent_default();
         let input_element = input_element.get().expect("Input should be present");
 
-        let todo = Todo {
-            id: Some(Uuid::new_v4()),
-            task: input_element.value(),
-            done: false,
-        };
+        //let todo = Todo {
+        //    id: Some(Uuid::new_v4()),
+        //    task: input_element.value(),
+        //    done: false,
+        //};
 
-        let (todo, set_todo) = create_signal(cx, todo);
-        set_todos.update(|items| items.push((todo, set_todo)));
+        //let (todo, set_todo) = create_signal(cx, todo);
+        //set_todos.update(|items| items.push((todo, set_todo)));
         input_element.set_value("");
     };
     view! {
