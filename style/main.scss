@@ -9,19 +9,43 @@ body {
 	text-align: center;
 }
 
+.main {
+	margin: 0 auto 0 auto;
+	max-width: 800px;
+}
+
 .add-new-todo {
 	.label {
 		font-size: large;
 	}
 	.content {
 		display: flex;
-		justify-content: space-between;
+		justify-content: center;
 
 		form {
 			display: flex;
-		}
-		.show-done {
-			display: flex;
+			flex-direction: column;
+			width: 80%;
+			justify-content: center;
 		}
 	}
+}
+
+.done {
+	text-decoration: line-through;
+}
+
+.todo-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+
+	.task {
+		font-weight: bold;
+	}
+}
+
+.debug {
+	border-color: black;
+	border-style: solid;
 }

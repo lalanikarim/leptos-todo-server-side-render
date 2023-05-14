@@ -24,8 +24,8 @@ pub fn TodoItem(cx: Scope, todo: ReadSignal<Todo>, set_todo: WriteSignal<Todo>) 
     view! {
         cx,
         <div class="todo-item">
-            <label class="label" class:done=move||{todo.get().done}>{todo.get().task}</label>
-            <button class="action" on:click=on_click>{button_text}</button>
+            <div class="task" class:done=move||{todo.get().done}>{todo.get().task}</div>
+            <button class="button" class=("button-outline",move||{todo.get().done}) on:click=on_click>{button_text}</button>
         </div>
     }
 }
