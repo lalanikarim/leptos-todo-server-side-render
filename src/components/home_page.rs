@@ -44,9 +44,7 @@ pub fn HomePage(cx: Scope) -> impl IntoView {
         } else {
             todos.into_iter().filter(|todo| !todo.done).collect()
         };
-        todos.sort_by_cached_key(|Todo { task, id, done }: &Todo| {
-            (done.clone(), task.clone().to_ascii_lowercase(), id.clone())
-        });
+        todos.sort_by_cached_key(|Todo { created_at, .. }: &Todo| (created_at.clone(),));
         todos
     };
 

@@ -44,7 +44,6 @@ impl From<surrealdb::sql::Thing> for Thing {
 
 impl From<String> for Thing {
     fn from(value: String) -> Self {
-        dbg!("From Thing: received: {value}");
         let splits: Vec<&str> = value.split(':').collect();
         if splits.len() != 2 {
             panic!("Invalid Thing format. Expected semicolon (:) separator. {value}")

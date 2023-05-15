@@ -1,6 +1,6 @@
+use chrono::NaiveDateTime;
 use leptos::*;
 use serde::{Deserialize, Serialize};
-use surrealdb::opt::PatchOp;
 
 use super::thing::Thing;
 
@@ -9,12 +9,17 @@ pub struct Todo {
     pub id: Option<Thing>,
     pub task: String,
     pub done: bool,
+    pub created_at: NaiveDateTime,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub completed_at: Option<NaiveDateTime>,
 }
 
 cfg_if::cfg_if! {
    if #[cfg(feature = "ssr")] {
         use crate::SurrealDbClient;
         use crate::SurrealThing;
+        use surrealdb::opt::PatchOp;
+        use chrono::{Utc};
     }
 }
 
@@ -24,10 +29,6 @@ impl Todo {
         _ = GetTodos::register();
         _ = AddTodo::register();
         _ = UpdateTodo::register();
-    }
-    pub fn change_done(self, done: bool) -> Self {
-        let Todo { id, task, .. } = self;
-        Self { id, task, done }
     }
 }
 
@@ -50,6 +51,8 @@ pub async fn add_todo(cx: Scope, task: String) -> Result<Option<Todo>, ServerFnE
                 id: None,
                 task,
                 done: false,
+                created_at: Utc::now().naive_local(),
+                completed_at: None,
             })
             .await
             .unwrap();
@@ -62,9 +65,17 @@ pub async fn add_todo(cx: Scope, task: String) -> Result<Option<Todo>, ServerFnE
 #[server(UpdateTodo, "/api")]
 pub async fn update_todo(cx: Scope, id: Thing, done: bool) -> Result<Option<Todo>, ServerFnError> {
     if let Some(db) = use_context::<SurrealDbClient>(cx) {
-        let _: Result<Todo, surrealdb::Error> = db
+        let completed_at = match done {
+            false => None,
+            true => Some(Utc::now().naive_local()),
+        };
+        let _: Result<serde_json::Value, surrealdb::Error> = db
             .update(("todos", Into::<SurrealThing>::into(id.clone())))
             .patch(PatchOp::replace("/done", done))
+            .patch(match done {
+                true => PatchOp::add("/completed_at", completed_at),
+                false => PatchOp::remove("/completed_at"),
+            })
             .await;
         let todo: Option<Todo> = db.select(id.as_pair()).await.unwrap();
         Ok(todo)
