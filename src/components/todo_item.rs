@@ -3,7 +3,7 @@ use leptos::*;
 use crate::models::todo::{Todo, UpdateTodo};
 
 #[component]
-pub fn TodoItem(cx: Scope, todo: ReadSignal<Todo>, set_todo: WriteSignal<Todo>) -> impl IntoView {
+pub fn TodoItem(cx: Scope, todo: ReadSignal<Todo>) -> impl IntoView {
     let update_todo_action =
         use_context::<Action<UpdateTodo, Result<Option<Todo>, ServerFnError>>>(cx)
             .expect("update_todo_action should exist");

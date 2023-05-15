@@ -67,10 +67,10 @@ pub fn HomePage(cx: Scope) -> impl IntoView {
                                         todo.id.clone()
                                         }
                                         view=move |cx,todo| {
-                                            let (todo,set_todo) = create_signal(cx,todo);
+                                            let (todo,_) = create_signal(cx,todo);
                                             view! {
                                                 cx,
-                                                <TodoItem todo set_todo />
+                                                <TodoItem todo />
                                             }
                                         }
                                     />

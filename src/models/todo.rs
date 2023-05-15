@@ -1,10 +1,6 @@
 use leptos::*;
 use serde::{Deserialize, Serialize};
 
-use surrealdb::engine::remote::ws::Client;
-use surrealdb::sql::Thing as SurrealThing;
-use surrealdb::Surreal;
-
 use super::thing::Thing;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -12,6 +8,13 @@ pub struct Todo {
     pub id: Option<Thing>,
     pub task: String,
     pub done: bool,
+}
+
+cfg_if::cfg_if! {
+   if #[cfg(feature = "ssr")] {
+        use crate::SurrealDbClient;
+        use crate::SurrealThing;
+    }
 }
 
 #[cfg(feature = "ssr")]
@@ -29,7 +32,7 @@ impl Todo {
 
 #[server(GetTodos, "/api")]
 pub async fn get_todos(cx: Scope) -> Result<Vec<Todo>, ServerFnError> {
-    if let Some(db) = use_context::<Surreal<Client>>(cx) {
+    if let Some(db) = use_context::<SurrealDbClient>(cx) {
         let todos: Vec<Todo> = db.select("todos").await.unwrap();
         Ok(todos)
     } else {
@@ -39,7 +42,7 @@ pub async fn get_todos(cx: Scope) -> Result<Vec<Todo>, ServerFnError> {
 
 #[server(AddTodo, "/api")]
 pub async fn add_todo(cx: Scope, task: String) -> Result<Option<Todo>, ServerFnError> {
-    if let Some(db) = use_context::<Surreal<Client>>(cx) {
+    if let Some(db) = use_context::<SurrealDbClient>(cx) {
         let todo: Todo = db
             .create("todos")
             .content(Todo {
@@ -58,7 +61,7 @@ pub async fn add_todo(cx: Scope, task: String) -> Result<Option<Todo>, ServerFnE
 
 #[server(UpdateTodo, "/api")]
 pub async fn update_todo(cx: Scope, todo: Todo, done: bool) -> Result<Option<Todo>, ServerFnError> {
-    if let Some(db) = use_context::<Surreal<Client>>(cx) {
+    if let Some(db) = use_context::<SurrealDbClient>(cx) {
         let id: SurrealThing = todo.clone().id.unwrap().into();
         let todo: Todo = db
             .update(("todos", id))
