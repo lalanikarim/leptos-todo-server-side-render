@@ -52,7 +52,6 @@ pub async fn add_todo(cx: Scope, task: String) -> Result<Option<Todo>, ServerFnE
             })
             .await
             .unwrap();
-        println!("Todo: {:?}", todo);
         Ok(Some(todo))
     } else {
         Ok(None)
