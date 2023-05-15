@@ -19,7 +19,10 @@ pub fn TodoItem(cx: Scope, todo: ReadSignal<Todo>) -> impl IntoView {
     let on_click = move |_| {
         let todo = todo.get();
         let done = todo.done;
-        update_todo_action.dispatch(UpdateTodo { todo, done: !done });
+        update_todo_action.dispatch(UpdateTodo {
+            id: todo.id.unwrap(),
+            done: !done,
+        });
     };
     view! {
         cx,

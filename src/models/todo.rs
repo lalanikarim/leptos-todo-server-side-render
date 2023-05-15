@@ -1,5 +1,6 @@
 use leptos::*;
 use serde::{Deserialize, Serialize};
+use surrealdb::opt::PatchOp;
 
 use super::thing::Thing;
 
@@ -59,15 +60,14 @@ pub async fn add_todo(cx: Scope, task: String) -> Result<Option<Todo>, ServerFnE
 }
 
 #[server(UpdateTodo, "/api")]
-pub async fn update_todo(cx: Scope, todo: Todo, done: bool) -> Result<Option<Todo>, ServerFnError> {
+pub async fn update_todo(cx: Scope, id: Thing, done: bool) -> Result<Option<Todo>, ServerFnError> {
     if let Some(db) = use_context::<SurrealDbClient>(cx) {
-        let id: SurrealThing = todo.clone().id.unwrap().into();
-        let todo: Todo = db
-            .update(("todos", id))
-            .content(todo.change_done(done))
-            .await
-            .unwrap();
-        Ok(Some(todo))
+        let _: Result<Todo, surrealdb::Error> = db
+            .update(("todos", Into::<SurrealThing>::into(id.clone())))
+            .patch(PatchOp::replace("/done", done))
+            .await;
+        let todo: Option<Todo> = db.select(id.as_pair()).await.unwrap();
+        Ok(todo)
     } else {
         Ok(None)
     }

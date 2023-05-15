@@ -11,6 +11,13 @@ pub struct Thing {
     pub id: Id,
 }
 
+impl Thing {
+    pub fn as_pair(&self) -> (String, String) {
+        let Thing { tb, id } = self;
+        (tb.to_string(), id.to_string())
+    }
+}
+
 impl Into<String> for Thing {
     fn into(self) -> String {
         let Thing { tb, id } = self;
