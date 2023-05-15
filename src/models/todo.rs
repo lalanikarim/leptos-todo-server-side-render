@@ -17,9 +17,8 @@ pub struct Todo {
 cfg_if::cfg_if! {
    if #[cfg(feature = "ssr")] {
         use crate::SurrealDbClient;
-        use crate::SurrealThing;
+        use chrono::Utc;
         use surrealdb::opt::PatchOp;
-        use chrono::{Utc};
     }
 }
 
@@ -69,14 +68,19 @@ pub async fn update_todo(cx: Scope, id: Thing, done: bool) -> Result<Option<Todo
             false => None,
             true => Some(Utc::now().naive_local()),
         };
-        let _: Result<serde_json::Value, surrealdb::Error> = db
-            .update(("todos", Into::<SurrealThing>::into(id.clone())))
+        // There seems to be a bug/odd behavior with update with patch that returns the
+        // patch object back instead of the resource. When that happens the server function
+        // panics. The update itself succeeds though.
+        // Expecting json instead of Todo is a temporary workaround to that issue.
+        let _: Option<serde_json::Value> = db
+            .update(id.as_pair())
             .patch(PatchOp::replace("/done", done))
             .patch(match done {
                 true => PatchOp::add("/completed_at", completed_at),
                 false => PatchOp::remove("/completed_at"),
             })
-            .await;
+            .await
+            .unwrap();
         let todo: Option<Todo> = db.select(id.as_pair()).await.unwrap();
         Ok(todo)
     } else {
