@@ -3,7 +3,7 @@ use surrealdb::sql::Id as SurrealId;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, PartialOrd)]
 pub enum Id {
     String(String),
 }
@@ -29,5 +29,12 @@ impl Into<SurrealId> for Id {
         match self {
             Id::String(id) => SurrealId::String(id),
         }
+    }
+}
+
+impl Ord for Id {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        let (Id::String(left), Id::String(right)) = (&self, other);
+        left.cmp(right)
     }
 }

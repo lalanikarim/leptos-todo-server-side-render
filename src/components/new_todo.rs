@@ -2,18 +2,25 @@ use leptos::ev::SubmitEvent;
 use leptos::html::Input;
 use leptos::*;
 
-use crate::models::todo::{AddTodo, Todo};
+use crate::{
+    models::todo::{AddTodo, Todo},
+    signals::ShowDone,
+};
 
 #[component]
 pub fn NewTodo(cx: Scope) -> impl IntoView {
     let add_todo_action = use_context::<Action<AddTodo, Result<Option<Todo>, ServerFnError>>>(cx)
         .expect("add_todo_action should exist");
 
-    let show_done = use_context::<ReadSignal<bool>>(cx).expect("show_done should exist");
-    let set_show_done = use_context::<WriteSignal<bool>>(cx).expect("set_show_done should exist");
-
+    let show_done_signal = use_context::<ReadSignal<ShowDone>>(cx).expect("show_done should exist");
+    let set_show_done =
+        use_context::<WriteSignal<ShowDone>>(cx).expect("set_show_done should exist");
+    let show_done = move || {
+        let ShowDone(show_done) = show_done_signal.get();
+        show_done
+    };
     let button_text = move || {
-        if show_done.get() {
+        if show_done() {
             "Hide Done"
         } else {
             "Show Done"
@@ -48,8 +55,8 @@ pub fn NewTodo(cx: Scope) -> impl IntoView {
                     <input class="input" node_ref=input_element type="text"/>
                     <button type="button" class="button button-clear" on:click=move |ev| {
                         ev.prevent_default();
-                        let show = show_done.get();
-                        set_show_done.set(!show);
+                        let show = show_done();
+                        set_show_done.set(ShowDone(!show));
                     }>
                     {button_text}
                     </button>

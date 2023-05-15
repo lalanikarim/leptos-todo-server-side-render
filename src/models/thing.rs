@@ -4,7 +4,7 @@ use surrealdb::sql::Thing as SurrealThing;
 
 use super::id::Id;
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, PartialOrd, Ord)]
 pub struct Thing {
     pub tb: String,
     pub id: Id,

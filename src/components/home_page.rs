@@ -2,14 +2,20 @@ use crate::components::new_todo::*;
 use crate::components::todo_item::*;
 use crate::models::todo::get_todos;
 use crate::models::todo::AddTodo;
+use crate::models::todo::Todo;
 use crate::models::todo::UpdateTodo;
+use crate::signals::ShowDone;
 
 use leptos::*;
 
 #[component]
 pub fn HomePage(cx: Scope) -> impl IntoView {
-    let (show_done, set_show_done) = create_signal(cx, true);
+    let (show_done_signal, set_show_done_signal) = create_signal(cx, ShowDone(true));
 
+    let show_done = move || {
+        let ShowDone(show_done) = show_done_signal.get();
+        show_done
+    };
     let load_todos = create_action(cx, |&()| async { () });
     let add_todo_action = create_server_action::<AddTodo>(cx);
     let update_todo_action = create_server_action::<UpdateTodo>(cx);
@@ -27,10 +33,22 @@ pub fn HomePage(cx: Scope) -> impl IntoView {
     );
 
     load_todos.dispatch(());
-    provide_context(cx, show_done);
-    provide_context(cx, set_show_done);
+    provide_context(cx, show_done_signal);
+    provide_context(cx, set_show_done_signal);
     provide_context(cx, add_todo_action);
     provide_context(cx, update_todo_action);
+
+    let filtered_todos = move |todos: Vec<Todo>| {
+        let mut todos = if show_done() {
+            todos
+        } else {
+            todos.into_iter().filter(|todo| !todo.done).collect()
+        };
+        todos.sort_by_cached_key(|Todo { task, id, done }: &Todo| {
+            (done.clone(), task.clone().to_ascii_lowercase(), id.clone())
+        });
+        todos
+    };
 
     view! { cx,
         <div class="main">
@@ -62,7 +80,7 @@ pub fn HomePage(cx: Scope) -> impl IntoView {
                                     }
                                     >
                                     <For
-                                        each=move || todos.clone()
+                                        each=move || filtered_todos(todos.clone())
                                         key=move|todo| {
                                         todo.id.clone()
                                         }

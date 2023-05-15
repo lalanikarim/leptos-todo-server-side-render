@@ -3,6 +3,7 @@ pub mod components;
 pub mod error_template;
 pub mod fileserv;
 pub mod models;
+pub mod signals;
 
 cfg_if! {
     if #[cfg(feature = "hydrate")] {
